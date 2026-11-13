@@ -1,11 +1,12 @@
 # Entry: decodes the base64 image shipped in this repo to /output/entry.png.
 import base64
 import os
+from pathlib import Path
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output"
-os.makedirs(out_dir, exist_ok=True)
-with open(os.path.join(HERE, "entry.b64")) as f:
-    data = base64.b64decode(f.read())
-with open(os.path.join(out_dir, "entry.png"), "wb") as f:
-    f.write(data)
+here = Path(__file__).resolve().parent
+out_dir = Path(os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output")
+out_dir.mkdir(parents=True, exist_ok=True)
+data = base64.b64decode((here / "entry.b64").read_text())
+if not (data[:4] == b"\x89PNG" or data[:3] == b"\xff\xd8\xff"):
+    raise ValueError("decoded entry.b64 is not a PNG or JPEG image")
+(out_dir / "entry.png").write_bytes(data)
